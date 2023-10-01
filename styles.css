@@ -1,0 +1,209 @@
+#viewDiv {
+  position: absolute;
+  top: 56;
+  /* right: 5%; Adjust based on sidebar width */
+  width: 100%; /* Adjust based on remaining screen width */
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+html {
+  height: -webkit-fill-available;
+}
+
+main {
+  height: 100vh;
+  height: -webkit-fill-available;
+  max-height: 100vh;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.navbar .container {
+  display: block; /* 'block' will make it a standard block-level element */
+}
+
+.navbar.bg-dark {
+  background-color: rgba(0, 0, 0, 0.5) !important; /* 0.5 is 50% opacity */
+}
+
+.custom-navbar {
+  position: absolute;
+  top: 0;
+  left: 5%;
+  width: 350px;
+  z-index: 1000;
+  padding-left: 25px;
+  border-radius: 3px;
+  overflow-y: visible;
+  /* This ensures the navbar is always on top */
+}
+
+#searchContainer {
+  display: block;
+  z-index: 1001;
+}
+
+#feature-wid {
+  height: 500px;
+  /* display: block; */
+  display: block;
+  overflow-y: hidden;
+}
+
+.expanded {
+  height: 500px; /* expanded height */
+  z-index: 1000;
+  left: 10%;
+  width: 100%;
+  /* background-color: #eeeeee91; */
+}
+
+.relative-container {
+  position: relative;
+}
+.derek {
+  position: relative;
+  padding-top: 10px;
+  width: auto;
+  left: 195px;
+}
+/* #dropdownMenuButton {
+  padding-right: 50% !important;
+} */
+
+.btn-toggle {
+  padding: 0.25rem 0.5rem;
+  font-weight: 600;
+  color: var(--bs-emphasis-color);
+  background-color: transparent;
+}
+.btn-toggle:hover,
+.btn-toggle:focus {
+  color: rgba(var(--bs-emphasis-color-rgb), 0.85);
+  background-color: var(--bs-tertiary-bg);
+}
+
+#bt-Div {
+  position: absolute;
+  right: 0;
+  top: 100px;
+}
+
+#dropdown {
+  display: block;
+  overflow-y: auto;
+}
+
+#buttonGrouping {
+  position: absolute;
+  top: 50px;
+  height: 300px;
+  right: 0px;
+  width: 50px;
+  background-color: black;
+  z-index: 1000;
+  border-radius: 4px;
+  margin-left: 2px;
+  /* adjust this for desired spacing */
+}
+
+#panelToggle {
+  position: absolute;
+  margin-top: 15px;
+  margin-left: 5px;
+  vertical-align: middle;
+  align-items: center;
+}
+
+.sidebar {
+  display: block;
+  border-radius: 10px;
+  position: absolute; /* Change position to 'absolute' */
+  right: 0; /* This ensures it's flush with the right side of the container */
+  height: 100%;
+  width: 250px;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  transition: width 0.5s;
+}
+
+.collapsed {
+  width: 0px;
+}
+
+/* #side-Exp {
+  background-color: transparent;
+} */
+
+#small-div {
+  position: absolute;
+  display: flex; /* Make this a flex container */
+  flex-direction: column; /* This will align the items vertically */
+  justify-content: space-between;
+  border-top-left-radius: 60px;
+  border-bottom-left-radius: 60px;
+  top: 8%;
+  right: 250px; /* the width of #sidebar */
+  height: 300px;
+  width: 55px;
+  background-color: rgba(30, 30, 30, 0.7) !important;
+  transition: right 0.5s;
+  padding: 6px; /* Change this to the color you want */
+}
+
+.centered-btn {
+  position: relative;
+  padding-top: 50%;
+  height: 30px;
+  margin-top: 20px; /* 20px from the top */
+}
+
+.list-group-item {
+  background-color: rgba(30, 30, 30, 0.7) !important;
+  outline-color: white;
+  font-weight: 300;
+  color: white;
+  z-index: 1000;
+}
+
+.list-group-item:hover {
+  color: grey;
+}
+
+#side-Exp {
+  margin-top: 40px; /* Remove any default margin */
+  padding: 0.5rem; /* Adjust as necessary */
+  cursor: pointer; /* Add a hand cursor to indicate it's clickable */
+}
+
+.btn-group-vertical {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 60px;
+  padding-top: 15px;
+}
+
+.bar-Buttons {
+  margin-top: 5px;
+}
+
+#refresh-search {
+  margin-top: 5px;
+  z-index: 1000;
+}
+
+/* #dropdownMenuButton {
+  padding-left: 30px;
+} */
+
+/* #queryResults {
+  height: 300px;
+  width: 300px;
+  left: 0;
+  background-color: aquamarine;
+  z-index: 1000;
+} */

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your WebMap Application</title>
+
+    <!-- Bootstrap CSS CDN -->
+    <link
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- ArcGIS JavaScript SDK CSS CDN -->
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.27/esri/themes/dark/main.css"
+    />
+
+    <!-- Your Custom CSS -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <nav
+      class="navbar navbar-dark bg-dark justify-content-between custom-navbar"
+    >
+      <div class="row w-100">
+        <div class="col-6">
+          <a class="navbar-brand">Advanced CAMA Viewer</a>
+        </div>
+        <!-- <div class="col-4"> -->
+        <form class="form-inline">
+          <input
+            class="form-control form-control-sm mr-sm-2"
+            type="search"
+            placeholder="Search"
+            aria-label="Search"
+            id="searchInput"
+          />
+          <button
+            class="btn btn-outline-primary my-2 my-sm-0 btn-sm"
+            type="submit"
+          >
+            Search
+          </button>
+          <div id="suggestions" class="list-group mt-2" style="position: absolute; z-index: 1;"></div>
+        </form>
+        <button
+        class="btn btn-info btn-sm"
+        type="button"
+        id="dropdownMenuButton"
+        data-toggle="dropdown"
+        aria-haspopup="true"
+        aria-expanded="false"
+      >
+
+      <svg id="down-arrow"xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-down-circle" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z"/>
+      </svg>
+     
+      <svg id="up-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-up-circle hide" viewBox="0 0 16 16" style="display: none;">
+        <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-7.5 3.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V11.5z"/>
+      </svg>
+      </button>
+      <div class="container" id="dropdown">
+        <div class="derek">
+        </div>
+      <div id="feature-wid"></div>
+        <!-- </div> -->
+        </div>
+
+    </nav>
+
+    <div id="viewDiv"></div>
+  
+  
+
+    <div class="container">
+        <div id="sidebar" class="bg-dark sidebar ">
+            <ul class="list-group">
+                <li class="list-group-item">CAMA Viewer</li>
+
+                <li class="list-group-item list-group-item-info">Basemap</li>
+                <li class="list-group-item list-group-item-info">Bookmarks</li>
+                <li class="list-group-item list-group-item-info">Measure</li>
+                <li class="list-group-item list-group-item-dark">Draw</li>
+                <li class="list-group-item list-group-item-info">ArcGIS Online</li>
+                <li class="list-group-item list-group-item-info">Print</li>
+                <li class="list-group-item list-group-item-light">Help</li>
+                <li class="list-group-item list-group-item-info">Feedback</li>
+                <li class="list-group-item list-group-item-info">Contact Information</li>
+              
+              </ul>
+        </div>
+        <div id="small-div" class="bg-light">
+            <button id="side-Exp" type="button" class="btn btn-info btn-sm">
+                <!-- Left Arrow -->
+                <svg id="left-arrow" title="expand" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-left-circle" viewBox="0 0 16 16" style="display: none;">
+                  <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+                </svg>
+                <!-- Right Arrow (hidden by default) -->
+                <svg id="right-arrow" title="collapse" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-right-circle" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/>
+                </svg>
+            </button>
+
+            <div class="btn-group-vertical">
+              <button type="button" class="btn bg-light bar-Buttons"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house-door" viewBox="0 0 16 16">
+                <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146ZM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4H2.5Z"/>
+              </svg></button>
+              <button type="button" class="btn bg-light bar-Buttons"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z"/>
+              </svg></button>
+              <button type="button" class="btn bg-light bar-Buttons"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cookie" viewBox="0 0 16 16">
+                <path d="M6 7.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm4.5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm-.5 3.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/>
+                <path d="M8 0a7.963 7.963 0 0 0-4.075 1.114c-.162.067-.31.162-.437.28A8 8 0 1 0 8 0Zm3.25 14.201a1.5 1.5 0 0 0-2.13.71A7.014 7.014 0 0 1 8 15a6.967 6.967 0 0 1-3.845-1.15 1.5 1.5 0 1 0-2.005-2.005A6.967 6.967 0 0 1 1 8c0-1.953.8-3.719 2.09-4.989a1.5 1.5 0 1 0 2.469-1.574A6.985 6.985 0 0 1 8 1c1.42 0 2.742.423 3.845 1.15a1.5 1.5 0 1 0 2.005 2.005A6.967 6.967 0 0 1 15 8c0 .596-.074 1.174-.214 1.727a1.5 1.5 0 1 0-1.025 2.25 7.033 7.033 0 0 1-2.51 2.224Z"/>
+              </svg></button>
+              <button type="button" class="btn bg-light bar-Buttons"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon" viewBox="0 0 16 16">
+                <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278zM4.858 1.311A7.269 7.269 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.316 7.316 0 0 0 5.205-2.162c-.337.042-.68.063-1.029.063-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z"/>
+              </svg></button>
+            </div>
+           
+        </div> <!-- New div outside of sidebar -->
+      </div>
+   
+
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+
+    <!-- Bootstrap JS CDN -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- ArcGIS JavaScript SDK CDN -->
+    <script src="https://js.arcgis.com/4.27/"></script>
+
+    <!-- Your Custom JavaScript -->
+    <script src="scripts.js"></script>
+  </body>
+</html>
