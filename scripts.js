@@ -38,384 +38,450 @@ require([
     url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CondoParcels_RelatesBothWays/FeatureServer/0",
   });
 
-  const unitTable = new FeatureLayer({
-    url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/TESTRELATEFROMPARCELSTOTABLEONETOMANY/FeatureServer/1",
+  const CondosTable = new FeatureLayer({
+    url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CondoParcels_RelatesBothWays/FeatureServer/1",
   });
+
+  const noCondosTable = new FeatureLayer({
+    url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/NoCondoParcels_RelatesBothWays/FeatureServer/1",
+  });
+
+  // const unitTable = new FeatureLayer({
+  //   url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/TESTRELATEFROMPARCELSTOTABLEONETOMANY/FeatureServer/1",
+  // });
 
   webmap.add(noCondosLayer);
   webmap.add(CondosLayer);
 
-  unitTable.load().then(() => {
-    webmap.tables.add(unitTable);
+  CondosTable.load().then(() => {
+    webmap.tables.add(CondosTable);
   });
-  // webmap.add(unitTable);
 
-  // const searchInput = document.getElementById("searchInput");
+  noCondosTable.load().then(() => {
+    webmap.tables.add(noCondosTable);
+  });
 
-  // searchInput.addEventListener("input", function () {
-  //   console.log("User input:", searchInput.value);
-  // });
+  function queryRelatedRecords(searchTerm) {
+    console.log(searchTerm);
+    // const uniqueID = screenPoint;
 
-  // function getSuggestions(queryString) {
-  //   layer = unitLayer;
+    let whereClause = `
+    Street_Name = '${searchTerm}' OR 
+    MBL = '${searchTerm}' OR 
+    Location = '${searchTerm}' OR 
+    Co_Owner = '${searchTerm}' OR 
+    Uniqueid = '${searchTerm}' OR 
+    Owner = '${searchTerm}'
+`;
 
-  //   const query = layer.createQuery();
-  //   query.returnGeometry = false; // We don't need geometry for suggestions
-  //   query.outFields = ["*"];
-  //   query.where = "Uniqueid = '%" + queryString + "%'";
-  //   // query.where = "Uniqueid '%" + queryString + "%'";
-  //   query.num = 5; // limit the number of suggestions
+    let query = noCondosLayer.createQuery();
+    query.where = whereClause;
+    query.returnGeometry = true; // Adjust based on your needs
+    query.outFields = ["*"];
 
-  //   layer
-  //     .queryFeatures(query)
-  //     .then(function (result) {
-  //       console.log("Received suggestions:", result.features); // Log the suggestions
-
-  //       // Later, we will populate the dropdown with these suggestions
-  //     })
-  //     .catch(function (error) {
-  //       console.error("Error during query:", error); // Log any errors
-  //     });
-  // }
-
-  // searchInput.addEventListener("input", function () {
-  //   const userInput = searchInput.value;
-  //   console.log("User input:", userInput);
-
-  //   if (userInput.length > 2) {
-  //     // consider querying only if user has typed more than 2 characters
-  //     getSuggestions(userInput);
-  //   }
-  // });
-
-  //   popupTemplate: {
-  //     title: "{uniqueid}",
-  //     outFields: ["*"],
-  //     returnGeometry: true,
-  //     type: "fields",
-  //     content: [
-  //       {
-  //         type: "fields",
-  //         fieldInfos: [
-  //           {
-  //             fieldName: "uniqueid",
-  //             label: "Uniqueid",
-  //           },
-  //           {
-  //             fieldName: "GIS_LINK",
-  //             label: "GIS_LINK",
-  //           },
-  //           {
-  //             fieldName: "Town_Code",
-  //             label: "Town Code",
-  //           },
-  //           {
-  //             fieldName: "Owner",
-  //             label: "Owner",
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //   },
-  // });
-  // webmap.add(unitLayer);
-
-  // const unitTable = new FeatureLayer({
-  //   url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CT_Washington_Adv_Viewer_Parcels_NOCONDOS/FeatureServer/0",
-  //   title: "CT Washington Adv Viewer Parcels NOCONDOS - Parcel Boundaries",
-  //   outFields: ["*"],
-  //   popupTemplate: {
-  //     title: "{uniqueid}",
-  //     outFields: ["*"],
-  //     returnGeometry: true,
-  //     fieldInfos: [
-  //       {
-  //         fieldName: "Uniqueid",
-  //         label: "Uniqueid",
-  //       },
-  //       {
-  //         fieldName: "GIS_LINK",
-  //         label: "GIS_LINK",
-  //       },
-  //       {
-  //         fieldName: "Town_Code",
-  //         label: "Town Code",
-  //       },
-  //       {
-  //         fieldName: "Owner",
-  //         label: "Owner",
-  //       },
-  //       {
-  //         fieldName: "Co_Owner",
-  //         label: "Co Owner",
-  //       },
-  //       {
-  //         fieldName: "Location",
-  //         label: "Location",
-  //       },
-  //     ],
-  //     content: [
-  //       // Create RelationshipContent with the relationship between
-  //       // the units and fires.
-  //       {
-  //         type: "relationship",
-  //         // The numeric ID value for the defined relationship on the service.
-  //         // This can be found on the service.
-  //         relationshipId: 0,
-  //       },
-  //     ],
-  //   },
-  //   // Create a simple renderer with no fill and lighter outline.
-  // });
-
-  // Create the RelationshipContent popup element
-  // const relationshipContent = new RelationshipContent({
-  //   relationshipId: 0,
-  //   title: "Cities in {Uniqueid}",
-  //   description: "All the cities that reside in {Uniqueid}.",
-  //   displayCount: 10,
-  //   // Autocasts as new array of RelatedRecordsInfoFieldOrder objects
-  //   orderByFields: [
-  //     {
-  //       field: "Uniqueid",
-  //       order: "asc",
-  //     },
-  //   ],
-  // });
-
-  // Create the RelationshipContent popup element
-  // and add it to the popup template content for the layer.
-  // unitLayer.popupTemplate.content = [
-  //   {
-  //     // Autocasts as new RelationshipContent object
-  //     type: "relationship",
-  //     relationshipId: 0,
-  //     title: "Hydrant Maintenance Inspections",
-  //     description: "Hydrant maintenance inspections for {expression/asset}",
-  //     displayCount: 5,
-  //     // Autocasts as new array of RelatedRecordsInfoFieldOrder objects
-  //     orderByFields: [
-  //       {
-  //         field: "Uniqueid",
-  //         order: "desc",
-  //       },
-  //     ],
-  //   },
-  // ];
-
-  // Create the non-spatial related table
-  // const parcelsTable = new FeatureLayer({
-  //   url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CT_Washington_Adv_Viewer_Parcels_NOCONDOS/FeatureServer/0",
-  //   title: "Related Parcels",
-  //   popupTemplate: {
-  //     // Set up table's field information
-  //     fieldInfos: [
-  //       {
-  //         fieldName: "Uniqueid",
-  //         label: "Unique ID",
-  //       },
-  //       {
-  //         fieldName: "Town_Code",
-  //         label: "Town Code",
-  //       },
-  //       {
-  //         fieldName: "GIS_LINK",
-  //         label: "GIS Link",
-  //       },
-  //       {
-  //         fieldName: "Owner",
-  //         label: "Owner",
-  //       },
-  //       {
-  //         fieldName: "Co_Owner",
-  //         label: "Co Owner",
-  //       },
-  //     ],
-  //   },
-  // });
-
-  // function queryPointFeatures(event) {
-  //   const point = view.toMap(event);
-  //   noCondosLayer
-  //     .queryFeatures({
-  //       //query object
-  //       geometry: point,
-  //       spatialRelationship: "intersects",
-  //       returnGeometry: false,
-  //       outFields: ["*"],
-  //     })
-  //     .then((featureSet) => {
-  //       // set graphic location to mouse pointer and add to mapview
-  //       pointGraphic.geometry = point;
-  //       view.graphics.add(pointGraphic);
-  //       // open popup of query result
-  //       view.openPopup({
-  //         location: point,
-  //         features: featureSet.features,
-  //       });
-  //     });
-  // }
-
-  let highlight;
-  let relatedResults = [];
-  // LOGIC for click and query related records
-
-  // view.on("click", (event) => {
-  //   queryPointFeatures(event);
-  // });
-
-  function queryRelatedRecords(screenPoint) {
-    console.log(screenPoint);
-    const uniqueID = screenPoint;
-    const point = view.toMap(screenPoint);
+    // let query = noCondosLayer.createQuery();
+    // query.where = `GIS_LINK = '${uniqueID}'`;
+    // query.returnGeometry = true;
+    // query.outFields = ["*"];
 
     noCondosLayer
-      .queryObjectIds({
-        where: `GIS_LINK = '${uniqueID}'`,
-      })
-      .then((objectIds) => {
-        if (!objectIds.length) {
-          console.log("No features found with GIS_LINK = 'J0001'");
-          return;
+      .queryFeatures(query)
+      .then(function (result) {
+        console.log(result);
+        console.log(result.features);
+        if (result.features) {
+          view.goTo(result.features);
+        } else {
+          result.features.forEach(function (feature) {
+            console.log(
+              `No geometry found for: ${feature.attributes.Location}`
+            );
+          });
         }
 
-        // Next, query for related features using those objectIds
+        // MapView.layerView(noCondosLayer).then(function (layerView) {
+        //   let handle = layerView.highlight();
+        // });
+        view.whenLayerView(noCondosLayer).then(function (layerView) {
+          view.graphics.removeAll();
+          let handle = layerView.highlight(result.features);
+        });
+
+        return noCondosLayer.queryObjectIds({
+          where: `GIS_LINK = '${uniqueID}'`,
+        });
+      })
+      .then(function (objectIds) {
+        if (!objectIds.length) {
+          console.warn(`No objectIds were found for ${uniqueID}.`);
+          throw new Error("No objectIds found");
+        }
+
         const query = {
           outFields: ["*"],
           relationshipId: 0,
           objectIds: objectIds,
         };
 
-        // Query the for the related features for the features ids found
-        noCondosLayer
-          .queryRelatedFeatures(query)
-          .then(function (result) {
-            const obj = result;
-            console.log(obj);
-            const value = obj[objectIds];
-            const features = value.features;
+        // Return both the objectIds and the result of queryRelatedFeatures
+        return Promise.all([
+          objectIds,
+          noCondosLayer.queryRelatedFeatures(query),
+        ]);
+      })
+      .then(function ([objectIds, result]) {
+        // Destructure the results array into objectIds and result
+        const obj = result;
+        console.log(obj);
+        const value = obj[objectIds];
+        const features = value.features;
 
-            // const results = result.uniqueID;
-            console.log(result);
-            features.forEach(function (feature) {
-              console.log(feature.attributes);
+        features.forEach(function (feature) {
+          const featureWidDiv = document.getElementById("dropdown");
+          const listGroup = document.createElement("ul");
+          listGroup.classList.add("list-group");
 
-              const featureWidDiv = document.getElementById("dropdown");
+          let value = feature.attributes["GIS_LINK"];
+          let value2 = feature.attributes["Uniqueid"];
 
-              // Create a bootstrap list group
-              const listGroup = document.createElement("ul");
-              listGroup.classList.add("list-group");
+          const listItem = document.createElement("li");
+          listItem.classList.add("list-group-item");
+          listItem.textContent = `GIS LINK: ${value} and Unique ID: ${value2}`;
 
-              let value = feature.attributes["Uniqueid"];
-
-              // Create a list item for the attribute
-              const listItem = document.createElement("li");
-              listItem.classList.add("list-group-item");
-              listItem.textContent = `Parcel Unique ID: ${value}`;
-              console.log(listItem);
-              // Append the list item to the list group
-              listGroup.appendChild(listItem);
-
-              // Append the whole list group to the feature-wid div
-              featureWidDiv.appendChild(listGroup);
-              $("#dropdown").toggleClass("expanded");
-            });
-          })
-
-          .catch(function (error) {
-            console.log("error from queryRelatedFeatures", error);
-          });
+          listGroup.appendChild(listItem);
+          featureWidDiv.appendChild(listGroup);
+          $("#dropdown").toggleClass("expanded");
+        });
+      })
+      .catch(function (error) {
+        console.error("Error:", error);
       });
   }
 
-  function queryRelatedRecords2(screenPoint) {
-    console.log(screenPoint);
-    const uniqueID = screenPoint;
-    const point = view.toMap(screenPoint);
+  const runQuery = (event) => {
+    let features;
+    console.log(event.srcElement.innerText);
+    let searchTerm = event.srcElement.innerText;
+    // console.log(searchTerm);
+    $("#dropdown").empty();
+    $("#dropdown").toggleClass("expanded");
 
-    CondosLayer.queryObjectIds({
-      where: `GIS_LINK = '${uniqueID}'`,
-    }).then((objectIds) => {
-      // Next, query for related features using those objectIds
-      const query = {
-        outFields: ["*"],
-        relationshipId: 0,
-        objectIds: objectIds,
-      };
+    let whereClause = `
+          Street_Name = '${searchTerm}' OR 
+          MBL = '${searchTerm}' OR 
+          Location = '${searchTerm}' OR 
+          Co_Owner = '${searchTerm}' OR 
+          Uniqueid = '${searchTerm}' OR 
+          Owner = '${searchTerm}' OR
+          GIS_LINK = '${searchTerm}'
+      `;
 
-      // Query the for the related features for the features ids found
-      CondosLayer.queryRelatedFeatures(query)
-        .then(function (result) {
-          const obj = result;
+    let query = noCondosTable.createQuery();
+    query.where = whereClause;
+    query.returnGeometry = false; // Adjust based on your needs
+    query.outFields = ["*"]; // Retrieve all fields
 
-          let uniqueIds = [];
-
-          for (let key in result) {
-            let featureItem = result[key];
-
-            // Check if features exist and has the required structure
-            if (featureItem.features && featureItem.features.length > 0) {
-              let attributes = featureItem.features[0].attributes;
-              if (attributes && attributes.Uniqueid) {
-                uniqueIds.push(attributes.Uniqueid);
-              }
-            }
-          }
-
-          uniqueIds.forEach(function (feature) {
-            console.log(uniqueIds);
+    noCondosTable
+      .queryFeatures(query)
+      .then((response) => {
+        // Process the detailed results here
+        // For instance, you can display more info or zoom to the feature's location
+        if (response.features.length > 0) {
+          features = response.features;
+          features.forEach(function (feature) {
+            console.log("Detailed feature:", feature.attributes.Location);
 
             const featureWidDiv = document.getElementById("dropdown");
-
-            // Create a bootstrap list group
             const listGroup = document.createElement("ul");
             listGroup.classList.add("list-group");
 
-            let value = feature;
-            console.log(value);
+            let locationVal = feature.attributes.Location;
+            let locationUniqueId = feature.attributes["Uniqueid"];
+            let locationGISLINK = feature.attributes["GIS_LINK"];
 
-            // Create a list item for the attribute
             const listItem = document.createElement("li");
             listItem.classList.add("list-group-item");
-            listItem.textContent = `Parcel Unique ID: ${value}`;
-            console.log(listItem);
-            // Append the list item to the list group
-            listGroup.appendChild(listItem);
+            listItem.textContent = `Location: ${locationVal} and Unique ID: ${locationUniqueId} and GIS_LINK: ${locationGISLINK}`;
 
-            // Append the whole list group to the feature-wid div
+            listGroup.appendChild(listItem);
             featureWidDiv.appendChild(listGroup);
             $("#dropdown").toggleClass("expanded");
+            $("#dropdown").show();
           });
-        })
+        }
+      })
+      .catch((error) => {
+        console.error("Error querying for details:", error);
+      });
 
-        .catch(function (error) {
-          console.log("error from queryRelatedFeatures", error);
+    // Now query the related records based on this objectId
+    queryRelatedRecords(event.srcElement.innerText);
+  };
+
+  // Attach event listener to the search input
+  document
+    .getElementById("searchInput")
+    .addEventListener("input", function (e) {
+      const searchTerm = e.target.value.toUpperCase();
+
+      if (searchTerm.length < 3) {
+        return;
+      }
+      console.log(searchTerm);
+
+      // Construct your where clause
+      let whereClause = `
+            Street_Name LIKE '%${searchTerm}%' OR 
+            MBL LIKE '%${searchTerm}%' OR 
+            Location LIKE '%${searchTerm}%' OR 
+            Co_Owner LIKE '%${searchTerm}%' OR 
+            Uniqueid LIKE '%${searchTerm}%' OR 
+            Owner LIKE '%${searchTerm}%'
+        `;
+
+      let query = noCondosTable.createQuery();
+      query.where = whereClause;
+      query.returnGeometry = false;
+      query.outFields = [
+        "Street_Name",
+        "MBL",
+        "Location",
+        "Co_Owner",
+        "Uniqueid",
+        "Owner",
+      ];
+
+      let uniqueSuggestions = new Set();
+
+      noCondosTable.queryFeatures(query).then((response) => {
+        console.log(response);
+        let suggestionsContainer = document.getElementById("suggestions");
+        suggestionsContainer.innerHTML = ""; // Clear previous suggestions
+
+        response.features.forEach((feature) => {
+          console.log("Processing feature:", feature);
+          [
+            "Street_Name",
+            "MBL",
+            "Location",
+            "Co_Owner",
+            "Uniqueid",
+            "Owner",
+          ].forEach((fieldName) => {
+            console.log("Processing field:", fieldName);
+            let value = feature.attributes[fieldName];
+
+            // NEEDS TO RETURN NAME OF FIELDS SEARCHED
+            //SO LIKE 289 TUNNEL Rd, 14 Tunnel Rd etc....
+            if (
+              value &&
+              value.includes(searchTerm) &&
+              !uniqueSuggestions.has(value)
+            ) {
+              let suggestionDiv = document.createElement("div");
+              suggestionDiv.className = "list-group-item"; // Using Bootstrap's class for list items
+              suggestionDiv.innerText = `${value}`;
+              // suggestionDiv.innerText = `${fieldName}: ${value}`;
+              console.log("Appending suggestion:", suggestionDiv);
+              suggestionsContainer.appendChild(suggestionDiv);
+
+              // Add the value to the Set
+              uniqueSuggestions.add(value);
+              suggestionsContainer.style.display = "block";
+              console.log(suggestionDiv);
+
+              suggestionDiv.addEventListener("click", function (e) {
+                runQuery(e);
+                console.log("Suggestion clicked:", e.target.innerText);
+                // Handle suggestion click
+              });
+            }
+          });
         });
+      });
     });
-  }
 
-  const featuresWidget = new Features({
-    container: "feature-wid",
-    view: view,
+  // Prevent form submission (page reload) when the search button is clicked
+  document
+    .querySelector(".form-inline")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      // You can handle the search action here, for instance, if you want to fetch more details based on a selected suggestion or search term
+    });
+
+  // Hide suggestions when clicking outside
+  document.addEventListener("click", function (e) {
+    if (e.target.id !== "searchInput") {
+      document.getElementById("suggestions").style.display = "none";
+    }
   });
+
+  // let highlight;
+  // let relatedResults = [];
+  // LOGIC for click and query related records
+
+  // view.on("click", (event) => {
+  //   queryPointFeatures(event);
+  // });
+
+  // function queryRelatedRecords(screenPoint) {
+  //   const uniqueID = screenPoint;
+
+  //   let query = noCondosLayer.createQuery();
+  //   query.where = `GIS_LINK = '${uniqueID}'`;
+  //   query.returnGeometry = true;
+  //   query.outFields = ["*"];
+
+  //   noCondosLayer
+  //     .queryFeatures(query)
+  //     .then(function (result) {
+  //       console.log(result);
+  //       console.log(result.features);
+  //       view.goTo(result.features);
+
+  //       return noCondosLayer.queryObjectIds({
+  //         where: `GIS_LINK = '${uniqueID}'`,
+  //       });
+  //     })
+  //     .then(function (objectIds) {
+  //       if (!objectIds.length) {
+  //         console.warn(`No objectIds were found for ${uniqueID}.`);
+  //         throw new Error("No objectIds found");
+  //       }
+
+  //       const query = {
+  //         outFields: ["*"],
+  //         relationshipId: 0,
+  //         objectIds: objectIds,
+  //       };
+
+  //       // Return both the objectIds and the result of queryRelatedFeatures
+  //       return Promise.all([
+  //         objectIds,
+  //         noCondosLayer.queryRelatedFeatures(query),
+  //       ]);
+  //     })
+  //     .then(function ([objectIds, result]) {
+  //       // Destructure the results array into objectIds and result
+  //       const obj = result;
+  //       console.log(obj);
+  //       const value = obj[objectIds];
+  //       const features = value.features;
+
+  //       features.forEach(function (feature) {
+  //         const featureWidDiv = document.getElementById("dropdown");
+  //         const listGroup = document.createElement("ul");
+  //         listGroup.classList.add("list-group");
+
+  //         let value = feature.attributes["GIS_LINK"];
+  //         let value2 = feature.attributes["Uniqueid"];
+
+  //         const listItem = document.createElement("li");
+  //         listItem.classList.add("list-group-item");
+  //         listItem.textContent = `GIS LINK: ${value} and Unique ID: ${value2}`;
+
+  //         listGroup.appendChild(listItem);
+  //         featureWidDiv.appendChild(listGroup);
+  //         $("#dropdown").toggleClass("expanded");
+  //       });
+  //     })
+  //     .catch(function (error) {
+  //       console.error("Error:", error);
+  //     });
+  // }
+
+  // function queryRelatedRecords2(screenPoint) {
+  //   const uniqueID = screenPoint;
+
+  //   let query = CondosLayer.createQuery();
+  //   query.where = `Uniqueid = '${uniqueID}'`;
+  //   query.returnGeometry = true;
+  //   query.outFields = ["*"];
+
+  //   noCondosLayer
+  //     .queryFeatures(query)
+  //     .then(function (result) {
+  //       console.log(result);
+  //       console.log(result.features);
+  //       view.goTo(result.features);
+
+  //       return noCondosLayer.queryObjectIds({
+  //         where: `Uniqueid = '${uniqueID}'`,
+  //       });
+  //     })
+  //     .then(function (objectIds) {
+  //       if (!objectIds.length) {
+  //         console.warn(`No objectIds were found for ${uniqueID}.`);
+  //         throw new Error("No objectIds found");
+  //       }
+
+  //       const query = {
+  //         outFields: ["*"],
+  //         relationshipId: 0,
+  //         objectIds: objectIds,
+  //       };
+
+  //       // Return both the objectIds and the result of queryRelatedFeatures
+  //       return Promise.all([
+  //         objectIds,
+  //         CondosLayer.queryRelatedFeatures(query),
+  //       ]);
+  //     })
+  //     .then(function ([objectIds, result]) {
+  //       // Destructure the results array into objectIds and result
+  //       const obj = result;
+  //       console.log(obj);
+  //       const value = obj[objectIds];
+  //       const features = value.features;
+
+  //       features.forEach(function (feature) {
+  //         const featureWidDiv = document.getElementById("dropdown");
+  //         const listGroup = document.createElement("ul");
+  //         listGroup.classList.add("list-group");
+
+  //         let value = feature.attributes["GIS_LINK"];
+  //         let value2 = feature.attributes["Uniqueid"];
+
+  //         const listItem = document.createElement("li");
+  //         listItem.classList.add("list-group-item");
+  //         listItem.textContent = `GIS LINK: ${value} and Unique ID: ${value2}`;
+
+  //         listGroup.appendChild(listItem);
+  //         featureWidDiv.appendChild(listGroup);
+  //         $("#dropdown").toggleClass("expanded");
+  //       });
+  //     })
+  //     .catch(function (error) {
+  //       console.error("Error:", error);
+  //     });
+  // }
+
+  // const featuresWidget = new Features({
+  //   container: "feature-wid",
+  //   view: view,
+  // });
 
   const searchWidget = new Search({
     container: "searchContainer",
     view: view,
     allPlaceholder: "Search Parcels",
     includeDefaultSources: false,
+    popupEnabled: false,
+    // maxResults: 60,
     sources: [
       {
-        layer: noCondosLayer,
+        layer: noCondosTable,
         searchFields: [
-          "UniqueId",
+          "Uniqueid",
           "MBL",
           "Owner",
           "Co_Owner",
           "Location",
           "Street_Number",
+          "Mailing_Address_1",
+          "Street_Name",
         ],
-        displayField: "GIS_LINK",
+        displayField: "Location",
         outFields: ["*"],
         name: "Parcels",
         placeholder: "Search No Condo Parcels",
@@ -428,6 +494,7 @@ require([
     view: view,
     allPlaceholder: "Search Parcels",
     includeDefaultSources: false,
+    maxResults: 60,
     sources: [
       {
         layer: CondosLayer,
@@ -438,6 +505,8 @@ require([
           "Co_Owner",
           "Location",
           "Street_Number",
+          "Mailing_Address_1",
+          "Street_Name",
         ],
         displayField: "UniqueId",
         outFields: ["*"],
@@ -447,133 +516,86 @@ require([
     ],
   });
 
-  // view.when(function () {
-  //   webmap.load().then(function () {
-  //     // Wait for all layers to be loaded
-  //     let layersLoaded = webmap.layers.map((layer) => layer.load());
-  //     // console.log(layersLoaded);
-  //     // layersLoaded.reverse();
-
-  //     // console.log(layersLoaded);
-  //     Promise.all(layersLoaded).then(() => {
-  //       console.log(webmap.layers);
-  //       // const reversedLayers = webmap.layers.slice().reverse();
-  //       const featureLayerSources = webmap.layers
-  //         .filter(function (layer) {
-  //           return layer.type === "feature" || layer.type === "Map Service";
-  //         })
-  //         .map(function (featureLayer) {
-  //           const defaultSearchFields = featureLayer.fields
-  //             .filter(
-  //               (field) =>
-  //                 field.type === "string" ||
-  //                 field.type === "double" ||
-  //                 field.type === "date"
-  //             )
-  //             .map((field) => field.name);
-
-  //           let searchFields, displayField;
-
-  //           {
-  //             searchFields = [
-  //               "UniqueId",
-  //               "MBL",
-  //               "Owner",
-  //               "Co_Owner",
-  //               "Location",
-  //               "Street_Number",
-  //             ];
-  //             displayField = "GIS_LINK";
-  //             // } else if (featureLayer.title === "Double Line Drawings") {
-  //             //   searchFields = ["DRAWINGNUMBER"];
-  //             //   displayField = "DRAWINGNUMBER";
-  //             // } else {
-  //             //   searchFields = ["OBG_COMMON_NAME", "OBG_DESC", "OBG_SYSTEM"];
-  //             //   displayField = "OBG_DESC";
-  //             // }
-  //           }
-  //           return {
-  //             layer: featureLayer,
-  //             searchFields: searchFields,
-  //             displayField: displayField,
-  //             outFields: ["*"],
-  //             name: featureLayer.title,
-  //             placeholder: "Search " + featureLayer.title,
-  //             maxSuggestions: 6,
-  //             maxResults: 6,
-  //             searchAllEnabled: false,
-  //             suggestionsEnabled: true,
-  //             DefaultSources: false,
-  //           };
-  //         });
-  //       // });
-  //       let searchQuery = "";
-
-  //       searchWidget.on("suggest-start", function (event) {
-  //         if (!event.searchTerm.startsWith("%")) {
-  //           searchQuery = `${event.searchTerm}`;
-  //           searchWidget.searchTerm = searchQuery;
-  //         } else {
-  //           searchQuery = event.searchTerm;
-  //         }
-  //       });
-
-  //       searchWidget.sources = featureLayerSources;
-  //       console.log(searchWidget.sources);
-  //       // searchWidget.sources.push(geocoder);
-  //     });
-  //   });
-  // });
   // Adds the search widget below other elements in
   // the top left corner of the view
-  view.ui.add(searchWidget, { position: "bottom-left" });
-  view.ui.add(searchWidget2, { position: "bottom-left" });
+  // view.ui.add(searchWidget, { position: "bottom-left" });
+  // view.ui.add(searchWidget2, { position: "bottom-left" });
 
   searchWidget.on("select-result", function (event) {
-    // const featureWidDiv = document.getElementById("dropdown");
+    console.log(event);
     $("#dropdown").empty();
-    // featureWidDiv.removeChild(listGroup);
 
     $("#dropdown").toggleClass("expanded");
 
     if (event.result && event.result.feature) {
-      const objectId = event.result.feature.attributes.GIS_LINK; // or your layer's unique ID field
+      const objectId = event.result.feature.attributes.GIS_LINK;
       console.log(objectId);
+
+      // Handle table results immediately
+      const tableAttributes = event.result.feature.attributes;
+      populateListItemsFromTableResults(tableAttributes);
+
       // Now query the related records based on this objectId
       queryRelatedRecords(objectId);
     }
   });
 
+  function populateListItemsFromTableResults(attributes) {
+    // $("#dropdown").toggle();
+    // Given the attributes from the table, create and display list items
+    const featureWidDiv = document.getElementById("dropdown");
+
+    const listGroup = document.createElement("ul");
+    listGroup.classList.add("list-group");
+
+    // Example: Displaying the Owner as a list item. Add more as needed.
+    const listItem = document.createElement("li");
+    listItem.classList.add("list-group-item");
+    listItem.textContent = `Owner: ${attributes.Owner}, GIS_LINK: ${attributes.GIS_LINK}`;
+    listGroup.appendChild(listItem);
+
+    featureWidDiv.appendChild(listGroup);
+  }
+
   searchWidget2.on("select-result", function (event) {
     $("#dropdown").empty();
+    $("#dropdown").toggleClass("expanded");
+
     if (event.result && event.result.feature) {
-      const objectId = event.result.feature.attributes.GIS_LINK; // or your layer's unique ID field
+      const objectId = event.result.feature.attributes.Uniqueid;
       console.log(objectId);
+
+      // Handle table results immediately
+      const tableAttributes = event.result.feature.attributes;
+      populateListItemsFromTableResults(tableAttributes);
+
       // Now query the related records based on this objectId
-      queryRelatedRecords2(objectId);
+      queryRelatedRecords(objectId);
     }
   });
 
-  // $(document).ready(function () {
-  //   $("#refresh-search").on("click", function () {
-  //     $("#dropdown").empty();
-  //     $("#dropdown").toggleClass("expanded");
-  //   });
-  // });
+  function populateListItemsFromTableResults(attributes) {
+    if ($("#dropdown").css("display") === "none") {
+      $("#dropdown").show(); // or .css("display", "block") depending on your needs
+    } else {
+      $("#dropdown").hide();
+    }
 
-  // const clearButton = $("#refresh-search");
-  // view.ui.add(clearButton, { position: "top-right" });
+    // $("#dropdown").toggle();
+    // Given the attributes from the table, create and display list items
+    const featureWidDiv = document.getElementById("dropdown");
 
-  // reactiveUtils.on(
-  //   () => view,
-  //   "click",
-  //   (event) => {
-  //     featuresWidget.open({
-  //       location: event.mapPoint,
-  //       fetchFeatures: true,
-  //     });
-  //   }
-  // );
+    const listGroup = document.createElement("ul");
+    listGroup.classList.add("list-group");
+
+    // Example: Displaying the Owner as a list item. Add more as needed.
+    const listItem = document.createElement("li");
+    listItem.classList.add("list-group-item");
+    listItem.textContent = `UniqueId: ${attributes.Uniqueid}, GIS_LINK: ${attributes.GIS_LINK}`;
+    listGroup.appendChild(listItem);
+
+    featureWidDiv.appendChild(listGroup);
+  }
 
   $(document).ready(function () {
     $(".list-group-item").on("click", function () {
