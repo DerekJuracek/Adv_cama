@@ -33,7 +33,7 @@ main {
 .custom-navbar {
   position: absolute;
   top: 0;
-  left: 5%;
+  left: 7%;
   width: 350px;
   z-index: 1000;
   padding-left: 25px;
@@ -57,7 +57,7 @@ main {
 } */
 
 #dropdown {
-  height: 500px;
+  height: 350px;
   overflow-y: auto;
 }
 
@@ -84,7 +84,7 @@ main {
 }
 
 .expanded {
-  height: 500px; /* expanded height */
+  height: 400px; /* expanded height */
   z-index: 1000;
   left: 10%;
   width: 100%;
@@ -235,6 +235,14 @@ li {
   z-index: 10;
   pointer-events: auto;
   cursor: pointer;
+}
+
+#clear-btn {
+  z-index: 1000;
+  display: block;
+  margin: 0px;
+  padding: 7px 7px 7px 7px;
+  height: 40px;
 }
 
 /* #dropdownMenuButton {

@@ -30,13 +30,23 @@ require([
     popupEnabled: false,
   });
 
+  // console.log(webmap);
+
   const noCondosLayer = new FeatureLayer({
-    url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/NoCondoParcels_RelatesBothWays/FeatureServer/0",
+    url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CT_Washington_Adv_Viewer_Parcels_NOCONDOS/FeatureServer/1",
   });
 
   const CondosLayer = new FeatureLayer({
-    url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CondoParcels_RelatesBothWays/FeatureServer/0",
+    url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CT_Washington_Adv_Viewer_Parcels_CONDOS/FeatureServer/1",
   });
+
+  // const noCondosLayer = new FeatureLayer({
+  //   url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/NoCondoParcels_RelatesBothWays/FeatureServer/0",
+  // });
+
+  // const CondosLayer = new FeatureLayer({
+  //   url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CondoParcels_RelatesBothWays/FeatureServer/0",
+  // });
 
   const CondosTable = new FeatureLayer({
     url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CondoParcels_RelatesBothWays/FeatureServer/1",
@@ -45,6 +55,36 @@ require([
   const noCondosTable = new FeatureLayer({
     url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/NoCondoParcels_RelatesBothWays/FeatureServer/1",
   });
+
+  let handle1;
+  let handle2;
+  console.log(handle1);
+  console.log(handle2);
+
+  const clearBtn = document.getElementById("clear-btn");
+
+  clearBtn.addEventListener("click", function () {
+    // alert("im getting clikced");
+    // let searchInput = document.getElementById("searchInput");
+    // searchInput = "";
+
+    $("#searchInput").val = "";
+    $("#dropdown").empty();
+    $("#dropdown").toggleClass("expanded");
+    $("#dropdown").hide();
+    let suggestionsContainer = document.getElementById("suggestions");
+    suggestionsContainer.innerHTML = "";
+    if (handle1) {
+      handle1.remove();
+    }
+    if (handle2) {
+      handle2.remove();
+    }
+
+    view.goTo(webmap.portalItem.extent);
+  });
+
+  view.ui.add(clearBtn, "top-left");
 
   // const unitTable = new FeatureLayer({
   //   url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/TESTRELATEFROMPARCELSTOTABLEONETOMANY/FeatureServer/1",
@@ -60,6 +100,14 @@ require([
   noCondosTable.load().then(() => {
     webmap.tables.add(noCondosTable);
   });
+
+  let runQuerySearchTerm;
+  let clickedToggle;
+  document
+    .getElementById("searchInput")
+    .addEventListener("input", function (e) {
+      runQuerySearchTerm = e.target.value.toUpperCase();
+    });
 
   function queryRelatedRecords(searchTerm) {
     console.log(searchTerm);
@@ -79,6 +127,10 @@ require([
     query.returnGeometry = true; // Adjust based on your needs
     query.outFields = ["*"];
 
+    let query2 = CondosLayer.createQuery();
+    query2.where = whereClause;
+    query2.returnGeometry = true; // Adjust based on your needs
+    query2.outFields = ["*"];
     // let query = noCondosLayer.createQuery();
     // query.where = `GIS_LINK = '${uniqueID}'`;
     // query.returnGeometry = true;
@@ -89,23 +141,32 @@ require([
       .then(function (result) {
         console.log(result);
         console.log(result.features);
-        if (result.features) {
+        if (result.features.length > 0) {
           view.goTo(result.features);
-        } else {
-          result.features.forEach(function (feature) {
-            console.log(
-              `No geometry found for: ${feature.attributes.Location}`
-            );
+          console.log(` No condos layer is highlighted`);
+          view.whenLayerView(noCondosLayer).then(function (layerView) {
+            handle1 = layerView.highlight(result.features);
           });
+        } else {
+          // result.features.forEach(function (feature) {
+          CondosLayer.queryFeatures(query2).then(function (result) {
+            console.log(result);
+            console.log(result.features);
+            if (result.features) {
+              console.log(`condos layer is highlighted`);
+              view.goTo(result.features);
+              view.whenLayerView(CondosLayer).then(function (layerView) {
+                handle2 = layerView.highlight(result.features);
+              });
+            }
+          });
+          // console.log(`No geometry found for: ${feature.attributes.Location}`);
+          // });
         }
 
         // MapView.layerView(noCondosLayer).then(function (layerView) {
         //   let handle = layerView.highlight();
         // });
-        view.whenLayerView(noCondosLayer).then(function (layerView) {
-          view.graphics.removeAll();
-          let handle = layerView.highlight(result.features);
-        });
 
         return noCondosLayer.queryObjectIds({
           where: `GIS_LINK = '${uniqueID}'`,
@@ -158,10 +219,16 @@ require([
       });
   }
 
-  const runQuery = (event) => {
+  const runQuery = (e) => {
+    // console.log(e);
     let features;
-    console.log(event.srcElement.innerText);
-    let searchTerm = event.srcElement.innerText;
+    if (clickedToggle) {
+      runQuerySearchTerm = e;
+    }
+
+    // console.log(event.srcElement.innerText);
+    let searchTerm = runQuerySearchTerm;
+    console.log(searchTerm);
     // console.log(searchTerm);
     $("#dropdown").empty();
     $("#dropdown").toggleClass("expanded");
@@ -215,7 +282,9 @@ require([
       });
 
     // Now query the related records based on this objectId
-    queryRelatedRecords(event.srcElement.innerText);
+    queryRelatedRecords(runQuerySearchTerm);
+    runQuerySearchTerm = "";
+    searchTerm = "";
   };
 
   // Attach event listener to the search input
@@ -291,9 +360,10 @@ require([
               console.log(suggestionDiv);
 
               suggestionDiv.addEventListener("click", function (e) {
-                runQuery(e);
-                console.log("Suggestion clicked:", e.target.innerText);
-                // Handle suggestion click
+                clickedToggle = true;
+                // let clicked = e.srcElement.innerHTML;
+                runQuery(e.target.innerHTML);
+                clickedToggle = false;
               });
             }
           });
@@ -315,6 +385,17 @@ require([
       document.getElementById("suggestions").style.display = "none";
     }
   });
+
+  // For pressing the Enter key
+  document.getElementById("searchInput").addEventListener("keyup", (event) => {
+    event.preventDefault();
+    if (event.key === "Enter") {
+      runQuery();
+    }
+  });
+
+  // For clicking the search button
+  document.getElementById("searchButton").addEventListener("click", runQuery);
 
   // let highlight;
   // let relatedResults = [];
