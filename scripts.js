@@ -56,22 +56,30 @@ require([
     url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/NoCondoParcels_RelatesBothWays/FeatureServer/1",
   });
 
+  let runQuerySearchTerm;
+  let clickedToggle;
   let handle1;
   let handle2;
+
   console.log(handle1);
   console.log(handle2);
 
   const clearBtn = document.getElementById("clear-btn");
 
   clearBtn.addEventListener("click", function () {
-    // alert("im getting clikced");
-    // let searchInput = document.getElementById("searchInput");
-    // searchInput = "";
-
     $("#searchInput").val = "";
+    // Get a reference to the search input field
+    const searchInput = document.getElementById("searchInput");
+
+    // To clear the text in the input field, set its value to an empty string
+    searchInput.value = "";
+
     $("#dropdown").empty();
     $("#dropdown").toggleClass("expanded");
     $("#dropdown").hide();
+    runQuerySearchTerm = "";
+    // runQuerySearchTerm = "";
+    searchTerm = "";
     let suggestionsContainer = document.getElementById("suggestions");
     suggestionsContainer.innerHTML = "";
     if (handle1) {
@@ -84,6 +92,10 @@ require([
     view.goTo(webmap.portalItem.extent);
   });
 
+  $("#searchInput").on("input", function () {
+    let searchInput = document.getElementById("searchInput");
+    console.log(searchInput);
+  });
   view.ui.add(clearBtn, "top-left");
 
   // const unitTable = new FeatureLayer({
@@ -101,8 +113,6 @@ require([
     webmap.tables.add(noCondosTable);
   });
 
-  let runQuerySearchTerm;
-  let clickedToggle;
   document
     .getElementById("searchInput")
     .addEventListener("input", function (e) {
@@ -114,12 +124,13 @@ require([
     // const uniqueID = screenPoint;
 
     let whereClause = `
-    Street_Name = '${searchTerm}' OR 
-    MBL = '${searchTerm}' OR 
-    Location = '${searchTerm}' OR 
-    Co_Owner = '${searchTerm}' OR 
-    Uniqueid = '${searchTerm}' OR 
-    Owner = '${searchTerm}'
+    Street_Name LIKE '%${searchTerm}%' OR 
+    MBL LIKE '%${searchTerm}%' OR 
+    Location LIKE '%${searchTerm}%' OR 
+    Co_Owner LIKE '%${searchTerm}%' OR 
+    Uniqueid LIKE '%${searchTerm}%' OR 
+    Owner LIKE '%${searchTerm}%' OR 
+    GIS_LINK LIKE '%${searchTerm}%'
 `;
 
     let query = noCondosLayer.createQuery();
@@ -163,10 +174,6 @@ require([
           // console.log(`No geometry found for: ${feature.attributes.Location}`);
           // });
         }
-
-        // MapView.layerView(noCondosLayer).then(function (layerView) {
-        //   let handle = layerView.highlight();
-        // });
 
         return noCondosLayer.queryObjectIds({
           where: `GIS_LINK = '${uniqueID}'`,
@@ -232,25 +239,34 @@ require([
     // console.log(searchTerm);
     $("#dropdown").empty();
     $("#dropdown").toggleClass("expanded");
-
+    // Construct your where clause
     let whereClause = `
-          Street_Name = '${searchTerm}' OR 
-          MBL = '${searchTerm}' OR 
-          Location = '${searchTerm}' OR 
-          Co_Owner = '${searchTerm}' OR 
-          Uniqueid = '${searchTerm}' OR 
-          Owner = '${searchTerm}' OR
-          GIS_LINK = '${searchTerm}'
-      `;
+            Street_Name LIKE '%${searchTerm}%' OR 
+            MBL LIKE '%${searchTerm}%' OR 
+            Location LIKE '%${searchTerm}%' OR 
+            Co_Owner LIKE '%${searchTerm}%' OR 
+            Uniqueid LIKE '%${searchTerm}%' OR 
+            Owner LIKE '%${searchTerm}%' OR
+            GIS_LINK LIKE '%${searchTerm}%'
+        `;
 
     let query = noCondosTable.createQuery();
     query.where = whereClause;
     query.returnGeometry = false; // Adjust based on your needs
-    query.outFields = ["*"]; // Retrieve all fields
-
+    query.outFields = [
+      "Street_Name",
+      "MBL",
+      "Location",
+      "Co_Owner",
+      "Uniqueid",
+      "Owner",
+      "GIS_LINK",
+    ]; // Retrieve all fields
+    console.log(query);
     noCondosTable
       .queryFeatures(query)
       .then((response) => {
+        console.log(response);
         // Process the detailed results here
         // For instance, you can display more info or zoom to the feature's location
         if (response.features.length > 0) {
@@ -265,10 +281,14 @@ require([
             let locationVal = feature.attributes.Location;
             let locationUniqueId = feature.attributes["Uniqueid"];
             let locationGISLINK = feature.attributes["GIS_LINK"];
+            let locationCoOwner = feature.attributes["Co_Owner"];
+            let locationOwner = feature.attributes["Owner"];
+            let locationMBL = feature.attributes["MBL"];
 
             const listItem = document.createElement("li");
             listItem.classList.add("list-group-item");
-            listItem.textContent = `Location: ${locationVal} and Unique ID: ${locationUniqueId} and GIS_LINK: ${locationGISLINK}`;
+            listItem.textContent = `Location: ${locationVal}, Unique ID: ${locationUniqueId}, GIS_LINK: ${locationGISLINK}
+            Co-Owner: ${locationCoOwner}, Owner: ${locationOwner}, MBL: ${locationMBL}`;
 
             listGroup.appendChild(listItem);
             featureWidDiv.appendChild(listGroup);
@@ -283,8 +303,6 @@ require([
 
     // Now query the related records based on this objectId
     queryRelatedRecords(runQuerySearchTerm);
-    runQuerySearchTerm = "";
-    searchTerm = "";
   };
 
   // Attach event listener to the search input
@@ -386,304 +404,21 @@ require([
     }
   });
 
-  // For pressing the Enter key
-  document.getElementById("searchInput").addEventListener("keyup", (event) => {
-    event.preventDefault();
-    if (event.key === "Enter") {
-      runQuery();
-    }
-  });
+  // document.addEventListener("keydown", function (event) {
+  //   if (event.key === "Enter") {
+  //     runQuery();
+  //     console.log("Enter is being pressed");
+  //   }
+  // });
 
-  // For clicking the search button
   document.getElementById("searchButton").addEventListener("click", runQuery);
 
-  // let highlight;
-  // let relatedResults = [];
-  // LOGIC for click and query related records
-
-  // view.on("click", (event) => {
-  //   queryPointFeatures(event);
+  // $(document).ready(function () {
+  //   $(".list-group-item").on("click", function () {
+  //     // Your event handling code here
+  //     console.log("Item clicked:", $(this).text());
+  //   });
   // });
-
-  // function queryRelatedRecords(screenPoint) {
-  //   const uniqueID = screenPoint;
-
-  //   let query = noCondosLayer.createQuery();
-  //   query.where = `GIS_LINK = '${uniqueID}'`;
-  //   query.returnGeometry = true;
-  //   query.outFields = ["*"];
-
-  //   noCondosLayer
-  //     .queryFeatures(query)
-  //     .then(function (result) {
-  //       console.log(result);
-  //       console.log(result.features);
-  //       view.goTo(result.features);
-
-  //       return noCondosLayer.queryObjectIds({
-  //         where: `GIS_LINK = '${uniqueID}'`,
-  //       });
-  //     })
-  //     .then(function (objectIds) {
-  //       if (!objectIds.length) {
-  //         console.warn(`No objectIds were found for ${uniqueID}.`);
-  //         throw new Error("No objectIds found");
-  //       }
-
-  //       const query = {
-  //         outFields: ["*"],
-  //         relationshipId: 0,
-  //         objectIds: objectIds,
-  //       };
-
-  //       // Return both the objectIds and the result of queryRelatedFeatures
-  //       return Promise.all([
-  //         objectIds,
-  //         noCondosLayer.queryRelatedFeatures(query),
-  //       ]);
-  //     })
-  //     .then(function ([objectIds, result]) {
-  //       // Destructure the results array into objectIds and result
-  //       const obj = result;
-  //       console.log(obj);
-  //       const value = obj[objectIds];
-  //       const features = value.features;
-
-  //       features.forEach(function (feature) {
-  //         const featureWidDiv = document.getElementById("dropdown");
-  //         const listGroup = document.createElement("ul");
-  //         listGroup.classList.add("list-group");
-
-  //         let value = feature.attributes["GIS_LINK"];
-  //         let value2 = feature.attributes["Uniqueid"];
-
-  //         const listItem = document.createElement("li");
-  //         listItem.classList.add("list-group-item");
-  //         listItem.textContent = `GIS LINK: ${value} and Unique ID: ${value2}`;
-
-  //         listGroup.appendChild(listItem);
-  //         featureWidDiv.appendChild(listGroup);
-  //         $("#dropdown").toggleClass("expanded");
-  //       });
-  //     })
-  //     .catch(function (error) {
-  //       console.error("Error:", error);
-  //     });
-  // }
-
-  // function queryRelatedRecords2(screenPoint) {
-  //   const uniqueID = screenPoint;
-
-  //   let query = CondosLayer.createQuery();
-  //   query.where = `Uniqueid = '${uniqueID}'`;
-  //   query.returnGeometry = true;
-  //   query.outFields = ["*"];
-
-  //   noCondosLayer
-  //     .queryFeatures(query)
-  //     .then(function (result) {
-  //       console.log(result);
-  //       console.log(result.features);
-  //       view.goTo(result.features);
-
-  //       return noCondosLayer.queryObjectIds({
-  //         where: `Uniqueid = '${uniqueID}'`,
-  //       });
-  //     })
-  //     .then(function (objectIds) {
-  //       if (!objectIds.length) {
-  //         console.warn(`No objectIds were found for ${uniqueID}.`);
-  //         throw new Error("No objectIds found");
-  //       }
-
-  //       const query = {
-  //         outFields: ["*"],
-  //         relationshipId: 0,
-  //         objectIds: objectIds,
-  //       };
-
-  //       // Return both the objectIds and the result of queryRelatedFeatures
-  //       return Promise.all([
-  //         objectIds,
-  //         CondosLayer.queryRelatedFeatures(query),
-  //       ]);
-  //     })
-  //     .then(function ([objectIds, result]) {
-  //       // Destructure the results array into objectIds and result
-  //       const obj = result;
-  //       console.log(obj);
-  //       const value = obj[objectIds];
-  //       const features = value.features;
-
-  //       features.forEach(function (feature) {
-  //         const featureWidDiv = document.getElementById("dropdown");
-  //         const listGroup = document.createElement("ul");
-  //         listGroup.classList.add("list-group");
-
-  //         let value = feature.attributes["GIS_LINK"];
-  //         let value2 = feature.attributes["Uniqueid"];
-
-  //         const listItem = document.createElement("li");
-  //         listItem.classList.add("list-group-item");
-  //         listItem.textContent = `GIS LINK: ${value} and Unique ID: ${value2}`;
-
-  //         listGroup.appendChild(listItem);
-  //         featureWidDiv.appendChild(listGroup);
-  //         $("#dropdown").toggleClass("expanded");
-  //       });
-  //     })
-  //     .catch(function (error) {
-  //       console.error("Error:", error);
-  //     });
-  // }
-
-  // const featuresWidget = new Features({
-  //   container: "feature-wid",
-  //   view: view,
-  // });
-
-  const searchWidget = new Search({
-    container: "searchContainer",
-    view: view,
-    allPlaceholder: "Search Parcels",
-    includeDefaultSources: false,
-    popupEnabled: false,
-    // maxResults: 60,
-    sources: [
-      {
-        layer: noCondosTable,
-        searchFields: [
-          "Uniqueid",
-          "MBL",
-          "Owner",
-          "Co_Owner",
-          "Location",
-          "Street_Number",
-          "Mailing_Address_1",
-          "Street_Name",
-        ],
-        displayField: "Location",
-        outFields: ["*"],
-        name: "Parcels",
-        placeholder: "Search No Condo Parcels",
-      },
-    ],
-  });
-
-  const searchWidget2 = new Search({
-    container: "searchContainer",
-    view: view,
-    allPlaceholder: "Search Parcels",
-    includeDefaultSources: false,
-    maxResults: 60,
-    sources: [
-      {
-        layer: CondosLayer,
-        searchFields: [
-          "UniqueId",
-          "MBL",
-          "Owner",
-          "Co_Owner",
-          "Location",
-          "Street_Number",
-          "Mailing_Address_1",
-          "Street_Name",
-        ],
-        displayField: "UniqueId",
-        outFields: ["*"],
-        name: "Parcels",
-        placeholder: "Search Condo Parcels",
-      },
-    ],
-  });
-
-  // Adds the search widget below other elements in
-  // the top left corner of the view
-  // view.ui.add(searchWidget, { position: "bottom-left" });
-  // view.ui.add(searchWidget2, { position: "bottom-left" });
-
-  searchWidget.on("select-result", function (event) {
-    console.log(event);
-    $("#dropdown").empty();
-
-    $("#dropdown").toggleClass("expanded");
-
-    if (event.result && event.result.feature) {
-      const objectId = event.result.feature.attributes.GIS_LINK;
-      console.log(objectId);
-
-      // Handle table results immediately
-      const tableAttributes = event.result.feature.attributes;
-      populateListItemsFromTableResults(tableAttributes);
-
-      // Now query the related records based on this objectId
-      queryRelatedRecords(objectId);
-    }
-  });
-
-  function populateListItemsFromTableResults(attributes) {
-    // $("#dropdown").toggle();
-    // Given the attributes from the table, create and display list items
-    const featureWidDiv = document.getElementById("dropdown");
-
-    const listGroup = document.createElement("ul");
-    listGroup.classList.add("list-group");
-
-    // Example: Displaying the Owner as a list item. Add more as needed.
-    const listItem = document.createElement("li");
-    listItem.classList.add("list-group-item");
-    listItem.textContent = `Owner: ${attributes.Owner}, GIS_LINK: ${attributes.GIS_LINK}`;
-    listGroup.appendChild(listItem);
-
-    featureWidDiv.appendChild(listGroup);
-  }
-
-  searchWidget2.on("select-result", function (event) {
-    $("#dropdown").empty();
-    $("#dropdown").toggleClass("expanded");
-
-    if (event.result && event.result.feature) {
-      const objectId = event.result.feature.attributes.Uniqueid;
-      console.log(objectId);
-
-      // Handle table results immediately
-      const tableAttributes = event.result.feature.attributes;
-      populateListItemsFromTableResults(tableAttributes);
-
-      // Now query the related records based on this objectId
-      queryRelatedRecords(objectId);
-    }
-  });
-
-  function populateListItemsFromTableResults(attributes) {
-    if ($("#dropdown").css("display") === "none") {
-      $("#dropdown").show(); // or .css("display", "block") depending on your needs
-    } else {
-      $("#dropdown").hide();
-    }
-
-    // $("#dropdown").toggle();
-    // Given the attributes from the table, create and display list items
-    const featureWidDiv = document.getElementById("dropdown");
-
-    const listGroup = document.createElement("ul");
-    listGroup.classList.add("list-group");
-
-    // Example: Displaying the Owner as a list item. Add more as needed.
-    const listItem = document.createElement("li");
-    listItem.classList.add("list-group-item");
-    listItem.textContent = `UniqueId: ${attributes.Uniqueid}, GIS_LINK: ${attributes.GIS_LINK}`;
-    listGroup.appendChild(listItem);
-
-    featureWidDiv.appendChild(listGroup);
-  }
-
-  $(document).ready(function () {
-    $(".list-group-item").on("click", function () {
-      // Your event handling code here
-      console.log("Item clicked:", $(this).text());
-    });
-  });
 
   $(document).ready(function () {
     $("#dropdownMenuButton").on("click", function () {
