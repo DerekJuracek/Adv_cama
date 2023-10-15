@@ -227,6 +227,8 @@ require([
   }
 
   const runQuery = (e) => {
+    let suggestionsContainer = document.getElementById("suggestions");
+    suggestionsContainer.innerHTML = "";
     // console.log(e);
     let features;
     if (clickedToggle) {
