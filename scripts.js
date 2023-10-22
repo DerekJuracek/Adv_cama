@@ -34,11 +34,36 @@ require([
 
   const noCondosLayer = new FeatureLayer({
     url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CT_Washington_Adv_Viewer_Parcels_NOCONDOS/FeatureServer/1",
+    defaultpopupTemplateEnabled: true,
   });
 
   const CondosLayer = new FeatureLayer({
     url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CT_Washington_Adv_Viewer_Parcels_CONDOS/FeatureServer/1",
   });
+
+  class CondoTableElements {
+    constructor(location, MBL, uniqueId, coOwner, owner, gisLink, geometry) {
+      this.location = location;
+      this.MBL = MBL;
+      this.uniqueId = uniqueId;
+      this.coOwner = coOwner;
+      this.owner = owner;
+      this.GIS_LINK = gisLink;
+      this.geometry = geometry;
+    }
+  }
+
+  // class CondoLayerElements {
+  //   constructor(location, MBL, uniqueId, coOwner, owner, gisLink, geometry) {
+  //     this.location = location;
+  //     this.MBL = MBL;
+  //     this.uniqueId = uniqueId;
+  //     this.coOwner = coOwner;
+  //     this.owner = owner;
+  //     this.GIS_LINK = gisLink;
+  //     this.geometry = geometry;
+  //   }
+  // }
 
   // const noCondosLayer = new FeatureLayer({
   //   url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/NoCondoParcels_RelatesBothWays/FeatureServer/0",
@@ -48,21 +73,66 @@ require([
   //   url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CondoParcels_RelatesBothWays/FeatureServer/0",
   // });
 
+  const popupTemplate = {
+    title: "{Street_Name} in {Location}", // Customize the title as needed
+    content: [
+      {
+        type: "fields",
+        fieldInfos: [
+          {
+            fieldName: "Street_Name",
+            label: "Street Name",
+          },
+          {
+            fieldName: "MBL",
+            label: "MBL",
+          },
+          {
+            fieldName: "Location",
+            label: "Location",
+          },
+          {
+            fieldName: "Co_Owner",
+            label: "Co-Owner",
+          },
+          {
+            fieldName: "Uniqueid",
+            label: "Unique ID",
+          },
+          {
+            fieldName: "Owner",
+            label: "Owner",
+          },
+          {
+            fieldName: "GIS_LINK",
+            label: "GIS Link",
+          },
+          // Add more fieldInfos for additional fields if needed
+        ],
+      },
+    ],
+  };
+
   const CondosTable = new FeatureLayer({
     url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/CondoParcels_RelatesBothWays/FeatureServer/1",
+    popupTemplate: popupTemplate,
   });
 
   const noCondosTable = new FeatureLayer({
     url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/NoCondoParcels_RelatesBothWays/FeatureServer/1",
+    popupTemplate: popupTemplate,
   });
 
   let runQuerySearchTerm;
   let clickedToggle;
   let handle1;
   let handle2;
+  let firstList = [];
+  let secondList = [];
 
   console.log(handle1);
   console.log(handle2);
+  // Filtering out items from secondList that exist in firstList
 
   const clearBtn = document.getElementById("clear-btn");
 
@@ -73,6 +143,8 @@ require([
 
     // To clear the text in the input field, set its value to an empty string
     searchInput.value = "";
+    firstList = [];
+    secondList = [];
 
     $("#dropdown").empty();
     $("#dropdown").toggleClass("expanded");
@@ -96,19 +168,13 @@ require([
     let searchInput = document.getElementById("searchInput");
     console.log(searchInput);
   });
+
   view.ui.add(clearBtn, "top-left");
-
-  // const unitTable = new FeatureLayer({
-  //   url: "https://services1.arcgis.com/j6iFLXhyiD3XTMyD/arcgis/rest/services/TESTRELATEFROMPARCELSTOTABLEONETOMANY/FeatureServer/1",
-  // });
-
   webmap.add(noCondosLayer);
   webmap.add(CondosLayer);
-
   CondosTable.load().then(() => {
     webmap.tables.add(CondosTable);
   });
-
   noCondosTable.load().then(() => {
     webmap.tables.add(noCondosTable);
   });
@@ -147,83 +213,147 @@ require([
     // query.returnGeometry = true;
     // query.outFields = ["*"];
 
-    noCondosLayer
-      .queryFeatures(query)
-      .then(function (result) {
-        console.log(result);
-        console.log(result.features);
-        if (result.features.length > 0) {
-          view.goTo(result.features);
-          console.log(` No condos layer is highlighted`);
-          view.whenLayerView(noCondosLayer).then(function (layerView) {
-            handle1 = layerView.highlight(result.features);
-          });
-        } else {
-          // result.features.forEach(function (feature) {
-          CondosLayer.queryFeatures(query2).then(function (result) {
-            console.log(result);
-            console.log(result.features);
-            if (result.features) {
-              console.log(`condos layer is highlighted`);
-              view.goTo(result.features);
-              view.whenLayerView(CondosLayer).then(function (layerView) {
-                handle2 = layerView.highlight(result.features);
-              });
-            }
-          });
-          // console.log(`No geometry found for: ${feature.attributes.Location}`);
-          // });
-        }
-
-        return noCondosLayer.queryObjectIds({
-          where: `GIS_LINK = '${uniqueID}'`,
+    noCondosLayer.queryFeatures(query).then(function (result) {
+      console.log(result);
+      console.log(result.features);
+      if (result.features.length > 0) {
+        view.goTo(result.features);
+        console.log(` No condos layer is highlighted`);
+        view.whenLayerView(noCondosLayer).then(function (layerView) {
+          handle1 = layerView.highlight(result.features);
         });
-      })
-      .then(function (objectIds) {
-        if (!objectIds.length) {
-          console.warn(`No objectIds were found for ${uniqueID}.`);
-          throw new Error("No objectIds found");
-        }
-
-        const query = {
-          outFields: ["*"],
-          relationshipId: 0,
-          objectIds: objectIds,
-        };
-
-        // Return both the objectIds and the result of queryRelatedFeatures
-        return Promise.all([
-          objectIds,
-          noCondosLayer.queryRelatedFeatures(query),
-        ]);
-      })
-      .then(function ([objectIds, result]) {
-        // Destructure the results array into objectIds and result
-        const obj = result;
-        console.log(obj);
-        const value = obj[objectIds];
-        const features = value.features;
-
-        features.forEach(function (feature) {
-          const featureWidDiv = document.getElementById("dropdown");
-          const listGroup = document.createElement("ul");
-          listGroup.classList.add("list-group");
-
-          let value = feature.attributes["GIS_LINK"];
-          let value2 = feature.attributes["Uniqueid"];
-
-          const listItem = document.createElement("li");
-          listItem.classList.add("list-group-item");
-          listItem.textContent = `GIS LINK: ${value} and Unique ID: ${value2}`;
-
-          listGroup.appendChild(listItem);
-          featureWidDiv.appendChild(listGroup);
-          $("#dropdown").toggleClass("expanded");
+      } else {
+        // result.features.forEach(function (feature) {
+        CondosLayer.queryFeatures(query2).then(function (result) {
+          console.log(result);
+          console.log(result.features);
+          if (result.features) {
+            console.log(`condos layer is highlighted`);
+            view.goTo(result.features);
+            view.whenLayerView(CondosLayer).then(function (layerView) {
+              handle2 = layerView.highlight(result.features);
+            });
+          }
         });
-      })
-      .catch(function (error) {
-        console.error("Error:", error);
+        // console.log(`No geometry found for: ${feature.attributes.Location}`);
+        // });
+      }
+      const features = result.features;
+      features.forEach(function (feature) {
+        console.log(feature);
+
+        // PUT BACK TO FILTER OUT EMPTY OWNERS
+        // if (feature.attributes.Owner === "") {
+        //   return;
+        // } else {
+        // secondList.push(feature.attributes["Uniqueid"]);
+        console.log("Detailed feature:", feature.attributes.Location);
+
+        let locationVal = feature.attributes.Location;
+        let locationUniqueId = feature.attributes["Uniqueid"];
+        let locationGISLINK = feature.attributes["GIS_LINK"];
+        let locationCoOwner = feature.attributes["Co_Owner"];
+        let locationOwner = feature.attributes["Owner"];
+        let locationMBL = feature.attributes["MBL"];
+        let locationGeom = feature.geometry;
+
+        firstList.push(
+          new CondoTableElements(
+            locationVal,
+            locationMBL,
+            locationUniqueId,
+            locationCoOwner,
+            locationOwner,
+            locationGISLINK,
+            locationGeom
+          )
+        );
+        // }
       });
+      console.log(firstList);
+
+      const totalList = new Set(firstList);
+      console.log(totalList);
+
+      let seenIds = new Set();
+
+      let uniqueArray = firstList.filter((obj) => {
+        if (seenIds.has(obj.uniqueId)) {
+          return false;
+        } else {
+          seenIds.add(obj.uniqueId);
+          return true;
+        }
+      });
+
+      // console.log(uniqueArray);
+
+      uniqueArray.forEach(function (feature) {
+        console.log(feature);
+
+        let locationVal = feature.location;
+        let locationUniqueId = feature.uniqueId;
+        let locationGISLINK = feature.GIS_LINK;
+        let locationCoOwner = feature.Co_Owner;
+        let locationOwner = feature.owner;
+        let locationMBL = feature.MBL;
+
+        const imageUrl = `https://publicweb-gis.s3.amazonaws.com/Images/Bldg_Photos/Washington_CT/${locationUniqueId}.jpg`;
+
+        const featureWidDiv = document.getElementById("dropdown");
+        const listGroup = document.createElement("ul");
+        // listGroup.classList.add("list-group");
+        listGroup.classList.add("row");
+
+        const listItem = document.createElement("li");
+        const imageDiv = document.createElement("li");
+        imageDiv.innerHTML = `<img src="${imageUrl}" alt="Image of ${locationUniqueId}" >`;
+        listItem.classList.add("list-group-item", "col-9");
+        imageDiv.classList.add("image-div", "col-3");
+
+        let listItemHTML = `<strong>Location:</strong> ${locationVal} <br> <strong>Unique ID:</strong> ${locationUniqueId}<br> <strong>Owner: ${locationOwner}</strong>`;
+        // let listItemHTML = `Location: ${locationVal} <br> Unique ID: ${locationUniqueId} <br> GIS_LINK: ${locationGISLINK}<br> Co-Owner: ${locationCoOwner} <br> Owner: ${locationOwner} <br> MBL: ${locationMBL}`;
+        // Append the new list item to the list
+        listItem.innerHTML += listItemHTML;
+
+        // listItem.textContent = `Location: ${locationVal}, Unique ID: ${locationUniqueId}, GIS_LINK: ${locationGISLINK}
+        //   Co-Owner: ${locationCoOwner}, Owner: ${locationOwner}, MBL: ${locationMBL}`;
+        listItem.setAttribute("data-id", locationGISLINK);
+
+        listGroup.appendChild(imageDiv);
+        listGroup.appendChild(listItem);
+        featureWidDiv.appendChild(listGroup);
+        $("#dropdown").toggleClass("expanded");
+        $("#dropdown").show();
+      });
+
+      $(document).ready(function () {
+        $("li").on("click", function (e) {
+          console.log(e);
+          let itemId = e.target.getAttribute("data-id");
+          // console.log(item);
+          // const items = item.split(",");
+          // itemUniqueID = items[1];
+          // const itemId = itemUniqueID.split(":")[1];
+          zoomToFeature(itemId);
+        });
+      });
+
+      function zoomToFeature(itemId) {
+        console.log(itemId);
+        let matchingObject = firstList.filter(
+          (obj) => obj.GIS_LINK == itemId || obj.Uniqueid == itemId
+        );
+        if (matchingObject) {
+          matchingObject.forEach(function (feature) {
+            console.log(feature);
+            let geometry = feature.geometry;
+            // Use the geometry to zoom to the feature.
+            view.goTo(geometry);
+          });
+        }
+      }
+    });
   }
 
   const runQuery = (e) => {
@@ -237,12 +367,16 @@ require([
 
     // console.log(event.srcElement.innerText);
     let searchTerm = runQuerySearchTerm;
-    console.log(searchTerm);
-    // console.log(searchTerm);
-    $("#dropdown").empty();
-    $("#dropdown").toggleClass("expanded");
-    // Construct your where clause
-    let whereClause = `
+
+    if (searchTerm.length < 3) {
+      return;
+    } else {
+      console.log(searchTerm);
+      // console.log(searchTerm);
+      $("#dropdown").empty();
+      $("#dropdown").toggleClass("expanded");
+      // Construct your where clause
+      let whereClause = `
             Street_Name LIKE '%${searchTerm}%' OR 
             MBL LIKE '%${searchTerm}%' OR 
             Location LIKE '%${searchTerm}%' OR 
@@ -252,56 +386,62 @@ require([
             GIS_LINK LIKE '%${searchTerm}%'
         `;
 
-    let query = noCondosTable.createQuery();
-    query.where = whereClause;
-    query.returnGeometry = false; // Adjust based on your needs
-    query.outFields = [
-      "Street_Name",
-      "MBL",
-      "Location",
-      "Co_Owner",
-      "Uniqueid",
-      "Owner",
-      "GIS_LINK",
-    ]; // Retrieve all fields
-    console.log(query);
-    noCondosTable
-      .queryFeatures(query)
-      .then((response) => {
-        console.log(response);
-        // Process the detailed results here
-        // For instance, you can display more info or zoom to the feature's location
-        if (response.features.length > 0) {
-          features = response.features;
-          features.forEach(function (feature) {
-            console.log("Detailed feature:", feature.attributes.Location);
+      let query = noCondosTable.createQuery();
+      query.where = whereClause;
+      query.returnGeometry = false; // Adjust based on your needs
+      query.outFields = [
+        "Street_Name",
+        "MBL",
+        "Location",
+        "Co_Owner",
+        "Uniqueid",
+        "Owner",
+        "GIS_LINK",
+      ]; // Retrieve all fields
+      console.log(query);
+      noCondosTable
+        .queryFeatures(query)
+        .then((response) => {
+          console.log(response);
+          // Process the detailed results here
+          // For instance, you can display more info or zoom to the feature's location
+          if (response.features.length > 0) {
+            features = response.features;
+            features.forEach(function (feature) {
+              // if (feature.attributes.Co_Owner === "") {
+              //   return;
+              // } else {
+              // firstList.push(feature.attributes["Uniqueid"]);
+              // streetName, MBL, location, coOwner, uniqueId, owner
+              console.log("Detailed feature:", feature.attributes.Location);
 
-            const featureWidDiv = document.getElementById("dropdown");
-            const listGroup = document.createElement("ul");
-            listGroup.classList.add("list-group");
+              let locationVal = feature.attributes.Location;
+              let locationUniqueId = feature.attributes["Uniqueid"];
+              let locationGISLINK = feature.attributes["GIS_LINK"];
+              let locationCoOwner = feature.attributes["Co_Owner"];
+              let locationOwner = feature.attributes["Owner"];
+              let locationMBL = feature.attributes["MBL"];
 
-            let locationVal = feature.attributes.Location;
-            let locationUniqueId = feature.attributes["Uniqueid"];
-            let locationGISLINK = feature.attributes["GIS_LINK"];
-            let locationCoOwner = feature.attributes["Co_Owner"];
-            let locationOwner = feature.attributes["Owner"];
-            let locationMBL = feature.attributes["MBL"];
+              firstList.push(
+                new CondoTableElements(
+                  locationVal,
+                  locationMBL,
+                  locationUniqueId,
+                  locationCoOwner,
+                  locationOwner,
+                  locationGISLINK
+                )
+              );
+              // }
+            });
 
-            const listItem = document.createElement("li");
-            listItem.classList.add("list-group-item");
-            listItem.textContent = `Location: ${locationVal}, Unique ID: ${locationUniqueId}, GIS_LINK: ${locationGISLINK}
-            Co-Owner: ${locationCoOwner}, Owner: ${locationOwner}, MBL: ${locationMBL}`;
-
-            listGroup.appendChild(listItem);
-            featureWidDiv.appendChild(listGroup);
-            $("#dropdown").toggleClass("expanded");
-            $("#dropdown").show();
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Error querying for details:", error);
-      });
+            console.log(firstList);
+          }
+        })
+        .catch((error) => {
+          console.error("Error querying for details:", error);
+        });
+    }
 
     // Now query the related records based on this objectId
     queryRelatedRecords(runQuerySearchTerm);
